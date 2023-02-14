@@ -542,7 +542,9 @@
     id ads = config[@"advertising"];
     if (ads != nil && (ads != (id)[NSNull null])) {
         JWAdvertisingConfig* advertising;
-        JWAdsAdvertisingConfigBuilder* adConfigBuilder = [[JWAdsAdvertisingConfigBuilder alloc] init];
+        // one31 fix - using JWImaAdvertisingConfigBuilder
+        // JWAdsAdvertisingConfigBuilder* adConfigBuilder = [[JWAdsAdvertisingConfigBuilder alloc] init];
+        JWImaAdvertisingConfigBuilder* adConfigBuilder = [[JWImaAdvertisingConfigBuilder alloc] init];
                  
          id adClient = ads[@"adClient"];
          if ((adClient != nil) && (adClient != (id)[NSNull null])) {
@@ -616,7 +618,8 @@
         
         id openBrowserOnAdClick = ads[@"openBrowserOnAdClick"];
         if (openBrowserOnAdClick != nil && (openBrowserOnAdClick != (id)[NSNull null])) {
-            [adConfigBuilder openBrowserOnAdClick:openBrowserOnAdClick];
+            // One31 fix - openBrowserOnAdClick doesn't work with the IMA ad client
+            // [adConfigBuilder openBrowserOnAdClick:openBrowserOnAdClick];
         }
         
         advertising = [adConfigBuilder buildAndReturnError:&error];
@@ -768,6 +771,8 @@
         pipController.delegate = self;
         
         [pipController addObserver:self forKeyPath:@"isPictureInPicturePossible" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionInitial context:NULL];
+        //One31 fix - added canStartPictureInPictureAutomaticallyFromInline support
+        pipController.canStartPictureInPictureAutomaticallyFromInline = true;
     }
     
     [self addSubview:self.playerView];
