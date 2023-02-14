@@ -48,6 +48,9 @@ allprojects {
     }
 }
 
+ext.jwPlayerVersion = '4.10.1'
+ext.exoplayerVersion = '2.18.1'
+
 dependencies {
     implementation 'com.facebook.react:react-native:+'
     implementation 'com.google.code.gson:gson:2.8.9'
