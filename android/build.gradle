@@ -48,7 +48,7 @@ allprojects {
     }
 }
 
-ext.jwPlayerVersion = '4.10.1'
+ext.jwPlayerVersion = '4.10.2'
 ext.exoplayerVersion = '2.18.1'
 
 dependencies {
