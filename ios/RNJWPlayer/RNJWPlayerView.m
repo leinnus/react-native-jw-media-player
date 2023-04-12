@@ -978,12 +978,9 @@
 #pragma mark - DRM Delegate
 
 - (void)contentIdentifierForURL:(NSURL * _Nonnull)url completionHandler:(void (^ _Nonnull)(NSData * _Nullable))handler {
-    if (!_contentUUID) {
-        _contentUUID = [[url.absoluteString componentsSeparatedByString:@";"] lastObject];
-    }
-    
-    NSData *uuidData = [_contentUUID dataUsingEncoding:NSUTF8StringEncoding];
-    handler(uuidData);
+    // Handling uuid for Verimatrix DRM. Extracting the uuid from the HLS manifest by removing sdk://
+    NSString *uuid = [url.absoluteString stringByReplacingOccurrencesOfString:@"skd://" withString:@""];
+    handler([uuid dataUsingEncoding:NSUTF8StringEncoding]);
 }
 
 - (void)appIdentifierForURL:(NSURL * _Nonnull)url completionHandler:(void (^ _Nonnull)(NSData * _Nullable))handler {
@@ -992,24 +989,46 @@
     handler(certData);
 }
 
+
 - (void)contentKeyWithSPCData:(NSData * _Nonnull)spcData completionHandler:(void (^ _Nonnull)(NSData * _Nullable, NSDate * _Nullable, NSString * _Nullable))handler {
-    NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
-    NSString *spcProcessURL = [NSString stringWithFormat:@"%@/%@?p1=%li", _processSpcUrl, _contentUUID, (NSInteger)currentTime];
-    NSMutableURLRequest *ckcRequest = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:spcProcessURL]];
+    // Verimatrix license request Handling
+    // SPC -> base64 encode -> URI endode -> add 'spc=' -> UTF 8 encode as NSData with the content-type "w-xxx-form-urlencoded"
+
+    NSMutableURLRequest *ckcRequest = [[NSMutableURLRequest alloc] init];
+    [ckcRequest setURL:[NSURL URLWithString: _processSpcUrl]];
+
+    //URI encode
+    NSString* base64encodedString = [spcData base64EncodedStringWithOptions:0];
+    NSCharacterSet *URLBase64CharacterSet = [[NSCharacterSet characterSetWithCharactersInString:@";,/?:@&=+$"] invertedSet];
+    base64encodedString = [base64encodedString stringByAddingPercentEncodingWithAllowedCharacters:URLBase64CharacterSet];
+
+    NSString *requestDataString = [NSString stringWithFormat:@"spc=%@", base64encodedString];
+
     [ckcRequest setHTTPMethod:@"POST"];
-    [ckcRequest setHTTPBody:spcData];
-    [ckcRequest addValue:@"application/octet-stream" forHTTPHeaderField:@"Content-Type"];
- 
+    [ckcRequest setHTTPBody:[requestDataString dataUsingEncoding:NSUTF8StringEncoding]];
+    [ckcRequest setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+
+    // Fairplay license request
     [[[NSURLSession sharedSession] dataTaskWithRequest:ckcRequest completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-        NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-        if (error != nil || (httpResponse != nil && !NSLocationInRange(httpResponse.statusCode , NSMakeRange(200, (299 - 200))))) {
-            handler(nil, nil, nil);
-            return;
-        }
- 
-        handler(data, nil, nil);
+    NSError * jsonError;
+    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+
+    if (error != nil || (httpResponse != nil && httpResponse.statusCode != 200)) {
+      NSLog(@"fairplay licenceRequest extract CKC from data response : %@", response);
+      NSLog(@"fairplay licenceRequest ERROR : %@", error);
+      handler(nil, nil, nil);
+      return;
+    }
+
+    // Extract CKC from the response : {"ckc":"value.."} -> get the value(base64 encoded) -> send it to the DRM handler as NSData
+    NSDictionary *jsonObject = (NSDictionary *)[NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error: &jsonError];
+    //SLog(@"fairplay Item ckc: %@", jsonObject[@"ckc"]);
+    NSString *ckcString = jsonObject[@"ckc"];
+    NSData *base64CkcData = [[NSData alloc] initWithBase64EncodedString:ckcString options:0];
+    handler(base64CkcData, nil, @"application/octet-stream");
     }] resume];
 }
+
 
 #pragma mark - AV Picture In Picture Delegate
 
