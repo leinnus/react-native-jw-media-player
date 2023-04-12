@@ -121,6 +121,8 @@
         id mode = config[@"mode"];
         
         [self initializeAudioSession:category :categoryOptions :mode];
+        // enabled inline PiP 
+        pipController.canStartPictureInPictureAutomaticallyFromInline = true;
     }
     
     id viewOnly = config[@"viewOnly"];
