@@ -121,8 +121,7 @@
         id mode = config[@"mode"];
         
         [self initializeAudioSession:category :categoryOptions :mode];
-        // enabled inline PiP 
-        pipController.canStartPictureInPictureAutomaticallyFromInline = true;
+        
     }
     
     id viewOnly = config[@"viewOnly"];
@@ -768,6 +767,8 @@
         pipController.delegate = self;
         
         [pipController addObserver:self forKeyPath:@"isPictureInPicturePossible" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionInitial context:NULL];
+        // enabled inline PiP 
+        pipController.canStartPictureInPictureAutomaticallyFromInline = true;
     }
     
     [self addSubview:self.playerView];
