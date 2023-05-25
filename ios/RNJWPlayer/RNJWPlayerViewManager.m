@@ -405,16 +405,14 @@ RCT_REMAP_METHOD(getAudioTracks,
                 audioTracks = [view.playerViewController.player audioTracks];
             }
             
-            if (audioTracks) {
+            if (audioTracks.count > 0) {
                 NSMutableArray *results = [[NSMutableArray alloc] init];
-                for (int i = 0; i < audioTracks.count; i++) {
+                for (JWMediaSelectionOption *audioTrack in audioTracks) {
                     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-                    id audioTrack = [audioTracks objectAtIndex:i];
-                    [dict setObject:audioTrack[@"language"] forKey:@"language"];
-                    [dict setObject:audioTrack[@"autoselect"] forKey:@"autoSelect"];
-                    [dict setObject:audioTrack[@"defaulttrack"] forKey:@"defaultTrack"];
-                    [dict setObject:audioTrack[@"name"] forKey:@"name"];
-                    [dict setObject:audioTrack[@"groupid"] forKey:@"groupId"];
+                    [dict setObject:audioTrack.name forKey:@"name"];
+                    [dict setObject:audioTrack.extendedLanguageTag forKey:@"languageCode"];
+                    //[dict setObject:[NSNumber numberWithInteger:audioTrack.trackType] forKey:@"type"];
+                    [dict setObject:[NSNumber numberWithInteger:audioTrack.defaultOption] forKey:@"default"];
                     [results addObject:dict];
                 }
                 resolve(results);
