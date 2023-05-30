@@ -123,6 +123,13 @@
         [self initializeAudioSession:category :categoryOptions :mode];
         
     }
+     // adding caption bottom margin
+    id margin = config[@"captionBottomMargin"];
+    if (margin != nil && (margin != (id)[NSNull null])) {
+        UIEdgeInsets inset = UIEdgeInsetsMake(0, 0, [margin floatValue], 0);
+        _playerView.captionInsets = inset;
+    }
+    
     
     id viewOnly = config[@"viewOnly"];
     if ((viewOnly != nil) && (viewOnly != (id)[NSNull null])) {
