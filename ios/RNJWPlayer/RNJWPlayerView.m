@@ -366,6 +366,18 @@
         }
     }
     
+    // A dictionary that contains options used to customize the initialization of the asset, using assetOptions with AVURLAssetHTTPHeaderFieldsKey   
+    id customHeaders = item[@"customHeaders"];
+    if(customHeaders != nil && (customHeaders != (id)[NSNull null])) {
+        NSArray* customHeadersArray = (NSArray*)customHeaders;
+        NSMutableDictionary* customHeaders = [[NSMutableDictionary alloc] init];
+        customHeaders = [customHeadersArray mutableCopy];
+        NSDictionary *assetOptions = @{
+            @"AVURLAssetHTTPHeaderFieldsKey": customHeaders
+        };
+        [itemBuilder assetOptions:assetOptions];
+    }
+    
     id mediaId = item[@"mediaId"];
     if ((mediaId != nil) && (mediaId != (id)[NSNull null])) {
         [itemBuilder mediaId:mediaId];
