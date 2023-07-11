@@ -551,6 +551,15 @@ public class RNJWPlayerView extends RelativeLayout implements
             itemBuilder.tracks(tracks);
         }
 
+        // handling custom headers
+        if (playlistItem.hasKey("customHeaders")) {
+            ReadableMap customHeaders = playlistItem.getMap("customHeaders");
+            Map<String,Object> mapHeaders = customHeaders.toHashMap();
+            Map<String,String> httpHeaders = mapHeaders.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, e -> (String)e.getValue()));
+            itemBuilder.httpHeaders(httpHeaders);
+        }
+
         if (playlistItem.hasKey("authUrl")) {
             itemBuilder.mediaDrmCallback(new WidevineCallback(playlistItem.getString("authUrl")));
         }
